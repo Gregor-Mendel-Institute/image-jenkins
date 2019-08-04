@@ -14,7 +14,7 @@ jobs:
                 // Specify the branches to examine for changes and to build.
                 branch("master")
                 remote {
-                  credentials("svc-bitbucket-ssh")
+                  credentials("svc-bitbucket-access-user-passwd")
                   url("ssh://git@${BITBUCKET_HOST}:7991/iab/vbc-cicd.git")
                 }
               }

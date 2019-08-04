@@ -10,6 +10,28 @@ unclassified:
   #          username: artifactory_user
   #          password: ${ARTIFACTORY_PASSWORD}
   location:
-    adminAddress: you@example.com
-    url: http://localhost:8080/
+    adminAddress: jenkins@vbc.ac.at
+    url: ${JENKINS_URL:-https://localhost:8080/}
+  jiraGlobalConfiguration:
+    sites:
+      - credentialsId: "svc-jira-access"
+        recordScmChanges: true
+        supportsWikiStyleComment: true
+        updateJiraIssueForAllStatus: true
+        url: "https://jira.vbc.ac.at/"
+  bitbucketEndpointConfiguration:
+    endpoints:
+      - bitbucketServerEndpoint:
+          credentialsId: "svc-bitbucket-access-user-passwd"
+          displayName: "VBC Bitbucket"
+          manageHooks: true
+          serverUrl: "https://bitbucket.imp.ac.at"
+          webhookImplementation: NATIVE
+  ansibleTowerGlobalConfig:
+    towerInstallation:
+      - enableDebugging: false
+        towerCredentialsId: "tower-access-token-it"
+        towerDisplayName: "VBC Tower"
+        towerTrustCert: false
+        towerURL: "https://tower.vbc.ac.at"
 ...

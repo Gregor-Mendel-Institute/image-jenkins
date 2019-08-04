@@ -10,29 +10,52 @@ jenkins:
           - key: FOO
             value: BAR
   authorizationStrategy:
+    #
+    # role based:
+    # https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos/role-strategy-auth
     projectMatrix:
       permissions:
         - "Overall/Administer:admin"
-        # - "Overall/Administer:adm_ebirn"
+        - "Overall/Administer:adm_ebirn"
         - "Overall/Administer:dlg.impimba.adm.jenkins"
         - "Overall/Read:admin"
-        # - "Overall/Read:adm_ebirn"
+        - "Overall/Read:adm_ebirn"
         - "Overall/Read:dlg.impimba.adm.jenkins"
   securityRealm:
+    # local:
+    #   allowsSignup: false
+    #   users:
+    #     - id: "admin"
+    #       password: "admin"
+    # see docs: https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos/saml
+    # saml:
+    #   binding: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+    #   displayNameAttributeName: "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
+    #   groupsAttributeName: "http://schemas.xmlsoap.org/claims/Group"
+    #   idpMetadataConfiguration:
+    #     period: 0
+    #     url: "https://sts.vbc.ac.at/FederationMetadata/2007-06/FederationMetadata.xml"
+    #     xml: {}
+    #  maximumAuthenticationLifetime: 86400
+    #  usernameAttributeName: "NameID"
+    #  usernameCaseConversion: "none"
+    # docs https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos/active-directory
     activeDirectory:
       cache:
         size: 1000
         ttl: 600
       customDomain: true
       domains:
-        - bindName: "cn=login,cn=Users,dc=imp,dc=univie,dc=ac,dc=at"
-          bindPassword: "${LDAP_BIND_PASSWD}"
+        - bindName: "${LDAP_BIND_DN:-cn=login,cn=Users,dc=imp,dc=univie,dc=ac,dc=at}"
+          bindPassword: "${LDAP_BIND_PASSWD:-super_secret}"
           name: "imp.univie.ac.at"
-          servers: "dc-impimba-1.imp.univie.ac.at:3268 dc-impimba-2.imp.univie.ac.at:3268 dc-impimba-3.imp.univie.ac.at:3268"
+          servers: "dc-impimba-1.imp.univie.ac.at:3268,dc-impimba-2.imp.univie.ac.at:3268,dc-impimba-3.imp.univie.ac.at:3268"
           tlsConfiguration: TRUST_ALL_CERTIFICATES
       groupLookupStrategy: RECURSIVE
       removeIrrelevantGroups: false
       startTls: true
+      internalUsersDatabase:
+        jenkinsInternalUser: "admin"
   remotingSecurity:
     enabled: true
   crumbIssuer:
@@ -43,7 +66,7 @@ jenkins:
         labelString: "clip docker rhel7"
         launcher:
           ssh: &ssh_launcher
-            credentialsId: "c153daf6-d7d9-4288-9cf5-39061f0a7017"
+            credentialsId: "jenkins-nodes-ssh-key"
             launchTimeoutSeconds: 210
             maxNumRetries: 10
             port: 22
@@ -78,6 +101,8 @@ jenkins:
         remoteFS: "/srv/jenkins"
         retentionStrategy: "always"
   views:
+    - all:
+        name: "all"
     - myView:
         name: "all my jobs"
     - list:
@@ -92,26 +117,22 @@ jenkins:
           # - "builtOnColumn"
           - "favoriteColumn"
         jobFilters:
-          # - "allJobsFilter"
-          # - jobTypeFilter:
-          #     includeExcludeTypeString: "excludeUnmatched"
-          #     jobType: "org.jenkinsci.plugins.workflow.job.WorkflowJob$DescriptorImpl@87524e2"
-          # - regExJobFilter:
-          #     includeExcludeTypeString: "excludeUnmatched"
-          #     matchDisplayName: true
-          #     matchFullDisplayName: true
-          #     matchFullName: true
-          #     matchName: true
-          #     regex: "role.*"
-          #     valueTypeString: "FOLDER_NAME"
+        # - "allJobsFilter"
+        # - jobTypeFilter:
+        #     includeExcludeTypeString: "excludeUnmatched"
+        #     jobType: "org.jenkinsci.plugins.workflow.job.WorkflowJob$DescriptorImpl@87524e2"
+        # - regExJobFilter:
+        #     includeExcludeTypeString: "excludeUnmatched"
+        #     matchDisplayName: true
+        #     matchFullDisplayName: true
+        #     matchFullName: true
+        #     matchName: true
+        #     regex: "role.*"
+        #     valueTypeString: "FOLDER_NAME"
         jobNames:
           - "SD"
         name: "roles list"
         recurse: true
         statusFilter: true
   viewsTabBar: "standard"
-
-
-
-
 ...
