@@ -1,0 +1,26 @@
+---
+# just setup initial seed job
+jobs:
+  - script: >
+      pipelineJob('VBC CICD seed') {
+        concurrentBuild(false)
+
+        definition {
+          cpsScm {
+            // If selected, try to obtain the Pipeline script contents directly from the SCM without performing a full checkout.
+            lightweight(true)
+            scm {
+              git {
+                // Specify the branches to examine for changes and to build.
+                branch("master")
+                remote {
+                  credentials("svc-bitbucket-ssh")
+                  url("ssh://git@${BITBUCKET_HOST}:7991/iab/vbc-cicd.git")
+                }
+              }
+            }
+            scriptPath("Jenkinsfile")
+          }
+        }
+      }
+...

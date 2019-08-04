@@ -1,0 +1,117 @@
+---
+jenkins:
+  systemMessage: "Jenkins configured automatically by Jenkins Configuration as Code plugin\n\n"
+  numExecutors: 5
+  scmCheckoutRetryCount: 2
+  mode: NORMAL
+  globalNodeProperties:
+    - envVars:
+        env:
+          - key: FOO
+            value: BAR
+  authorizationStrategy:
+    projectMatrix:
+      permissions:
+        - "Overall/Administer:admin"
+        # - "Overall/Administer:adm_ebirn"
+        - "Overall/Administer:dlg.impimba.adm.jenkins"
+        - "Overall/Read:admin"
+        # - "Overall/Read:adm_ebirn"
+        - "Overall/Read:dlg.impimba.adm.jenkins"
+  securityRealm:
+    activeDirectory:
+      cache:
+        size: 1000
+        ttl: 600
+      customDomain: true
+      domains:
+        - bindName: "cn=login,cn=Users,dc=imp,dc=univie,dc=ac,dc=at"
+          bindPassword: "${LDAP_BIND_PASSWD}"
+          name: "imp.univie.ac.at"
+          servers: "dc-impimba-1.imp.univie.ac.at:3268 dc-impimba-2.imp.univie.ac.at:3268 dc-impimba-3.imp.univie.ac.at:3268"
+          tlsConfiguration: TRUST_ALL_CERTIFICATES
+      groupLookupStrategy: RECURSIVE
+      removeIrrelevantGroups: false
+      startTls: true
+  remotingSecurity:
+    enabled: true
+  crumbIssuer:
+    standard:
+      excludeClientIPFromCrumb: false
+  nodes:
+    - permanent:
+        labelString: "clip docker rhel7"
+        launcher:
+          ssh: &ssh_launcher
+            credentialsId: "c153daf6-d7d9-4288-9cf5-39061f0a7017"
+            launchTimeoutSeconds: 210
+            maxNumRetries: 10
+            port: 22
+            retryWaitTime: 15
+            sshHostKeyVerificationStrategy: "nonVerifyingKeyVerificationStrategy"
+            host: "it-build-clip-1.vbc.ac.at"
+        name: "it-build-clip-1.vbc.ac.at"
+        nodeDescription: "build clip container images"
+        numExecutors: 8
+        remoteFS: "/srv/jenkins"
+        retentionStrategy: "always"
+    - permanent:
+        labelString: "rhel8 docker dockerce"
+        launcher:
+          ssh:
+            <<: *ssh_launcher
+            host: "it-builder-1.vbc.ac.at"
+        name: "it-builder-1.vbc.ac.at"
+        nodeDescription: "build all the things"
+        numExecutors: 8
+        remoteFS: "/srv/jenkins"
+        retentionStrategy: "always"
+    - permanent:
+        labelString: "rhel8 docker dockerce"
+        launcher:
+          ssh:
+            <<: *ssh_launcher
+            host: "it-builder-2.vbc.ac.at"
+        name: "it-builder-2.vbc.ac.at"
+        nodeDescription: "build all the things"
+        numExecutors: 8
+        remoteFS: "/srv/jenkins"
+        retentionStrategy: "always"
+  views:
+    - myView:
+        name: "all my jobs"
+    - list:
+        columns:
+          - "status"
+          - "weather"
+          - "jobName"
+          - "lastSuccess"
+          - "lastFailure"
+          - "lastDuration"
+          - "buildButton"
+          # - "builtOnColumn"
+          - "favoriteColumn"
+        jobFilters:
+          # - "allJobsFilter"
+          # - jobTypeFilter:
+          #     includeExcludeTypeString: "excludeUnmatched"
+          #     jobType: "org.jenkinsci.plugins.workflow.job.WorkflowJob$DescriptorImpl@87524e2"
+          # - regExJobFilter:
+          #     includeExcludeTypeString: "excludeUnmatched"
+          #     matchDisplayName: true
+          #     matchFullDisplayName: true
+          #     matchFullName: true
+          #     matchName: true
+          #     regex: "role.*"
+          #     valueTypeString: "FOLDER_NAME"
+        jobNames:
+          - "SD"
+        name: "roles list"
+        recurse: true
+        statusFilter: true
+  viewsTabBar: "standard"
+
+
+
+
+...
