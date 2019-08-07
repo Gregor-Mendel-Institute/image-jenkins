@@ -2,8 +2,8 @@
 # latest alpine, others: jdk11, lts, slim
 # https://jenkins.io/download/lts/
 # https://hub.docker.com/r/jenkins/jenkins/tags
-FROM jenkins/jenkins:2.176.2-alpine
-FROM jenkins/jenkins:alpine
+#FROM jenkins/jenkins:2.176.2-alpine
+FROM jenkins/jenkins:2.189-alpine
 
 COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
 RUN /usr/local/bin/install-plugins.sh < /usr/share/jenkins/ref/plugins.txt

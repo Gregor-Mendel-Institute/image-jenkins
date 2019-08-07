@@ -1,8 +1,17 @@
 ---
 # just setup initial seed job
 jobs:
+  # setup IT dept special folder
   - script: >
-      pipelineJob('VBC CICD seed') {
+      folder('it') {
+        displayName('VBC IT')
+        description('all things VBC IT')
+      }
+
+  # seed job for all job discovery
+  - script: >
+      pipelineJob('it/seed') {
+        displayName('CICD seed')
         concurrentBuild(false)
 
         definition {
@@ -12,10 +21,11 @@ jobs:
             scm {
               git {
                 // Specify the branches to examine for changes and to build.
-                branch("master")
+                //FIXME make this configurable
+                branch("${SEED_JOB_BRANCH}")
                 remote {
-                  credentials("svc-bitbucket-access-user-passwd")
-                  url("ssh://git@${BITBUCKET_HOST}:7991/iab/vbc-cicd.git")
+                  credentials("${SEED_JOB_CREDENTIALS_ID}")
+                  url("${SEED_JOB_REPO_URL}")
                 }
               }
             }

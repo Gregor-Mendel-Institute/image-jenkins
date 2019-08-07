@@ -12,6 +12,23 @@ unclassified:
   location:
     adminAddress: jenkins@vbc.ac.at
     url: ${JENKINS_URL:-https://localhost:8080/}
+  globalLibraries:
+    libraries:
+      - name: "vbc-cicd"
+        defaultVersion: "${SEED_JOB_BRANCH:-master}"
+        implicit: true
+        retriever:
+          modernSCM:
+            scm:
+              git:
+                remote: "${SEED_JOB_REPO_URL}"
+                credentialsId: "${SEED_JOB_CREDENTIALS_ID}"
+                traits:
+                  - branchDiscoveryTrait
+                  - tagDiscoveryTrait
+                  # with git plugin 4.0
+                  # - "gitBranchDiscovery"
+                  # - "gitTagDiscovery"
   jiraGlobalConfiguration:
     sites:
       - credentialsId: "svc-jira-access"

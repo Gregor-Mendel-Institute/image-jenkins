@@ -1,6 +1,7 @@
 ---
 jenkins:
-  systemMessage: "Jenkins configured automatically by Jenkins Configuration as Code plugin\n\n"
+  systemMessage: |
+    Jenkins configured automatically by Jenkins Configuration as Code plugin
   numExecutors: 5
   scmCheckoutRetryCount: 2
   mode: NORMAL
@@ -9,18 +10,105 @@ jenkins:
         env:
           - key: FOO
             value: BAR
-  authorizationStrategy:
+  # authorizationStrategy:
     #
     # role based:
     # https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos/role-strategy-auth
-    projectMatrix:
-      permissions:
-        - "Overall/Administer:admin"
-        - "Overall/Administer:adm_ebirn"
-        - "Overall/Administer:dlg.impimba.adm.jenkins"
-        - "Overall/Read:admin"
-        - "Overall/Read:adm_ebirn"
-        - "Overall/Read:dlg.impimba.adm.jenkins"
+    # projectMatrix:
+    #   permissions:
+    #     # should be perm.* groups, but saml does not deliver domain local groups
+    #     # see https://social.technet.microsoft.com/wiki/contents/articles/13829.ad-fs-2-0-domain-local-groups-in-a-claim.aspx
+    #     - "Overall/ViewStatus:anonymous" # make links to embeddable build status work
+    #     - "Overall/Administer:jenkins_api_admin"
+    #     - "Overall/Administer:adm_ebirn"
+    #     - "Overall/Administer:role.it.backoffice.admin"
+    #     - "Overall/Read:admin"
+    #     - "Overall/Read:adm_ebirn"
+    #     - "Overall/Read:role.it.backoffice"
+  authorizationStrategy:
+    roleBased:
+      roles:
+        global:
+          - assignments:
+              - "anonymous"
+            name: "Build status viewer"
+            pattern: ".*"
+            permissions:
+              - "Job/ViewStatus"
+          - assignments:
+              - "authenticated"
+            name: "Reader"
+            pattern: ".*"
+            permissions:
+              - "Overall/Read"
+          - assignments:
+              - "adm_ebirn"
+            name: "admin"
+            pattern: ".*"
+            permissions:
+              - "Job/Move"
+              - "Job/Build"
+              - "Credentials/Delete"
+              - "Credentials/ManageDomains"
+              - "Lockable Resources/Unlock"
+              - "View/Create"
+              - "Agent/Configure"
+              - "Job/Read"
+              - "Credentials/Update"
+              - "Agent/Create"
+              - "Job/Delete"
+              - "Agent/Build"
+              - "View/Configure"
+              - "Lockable Resources/Reserve"
+              - "Agent/Provision"
+              - "SCM/Tag"
+              - "Job/Create"
+              - "Job/Discover"
+              - "Credentials/View"
+              - "Agent/Connect"
+              - "Agent/Delete"
+              - "Run/Replay"
+              - "Agent/Disconnect"
+              - "Run/Delete"
+              - "Job/Cancel"
+              - "Overall/Read"
+              - "Run/Update"
+              - "Credentials/Create"
+              - "Overall/Administer"
+              - "View/Delete"
+              - "Job/Configure"
+              - "Job/Workspace"
+              - "View/Read"
+              - "Job/ViewStatus"
+        items:
+        # this is for roles scoped to jobs
+          - assignments:
+              - "role.it.backoffice.admin"
+              - "role.it.backoffice"
+            name: "IT Project dev"
+            pattern: "it/.*"
+            permissions:
+              - "Job/Move"
+              - "Job/Build"
+              - "SCM/Tag"
+              - "Credentials/Delete"
+              - "Job/Create"
+              - "Credentials/ManageDomains"
+              - "Lockable Resources/Unlock"
+              - "Job/Discover"
+              - "Job/Read"
+              - "Credentials/View"
+              - "Credentials/Update"
+              - "Run/Replay"
+              - "Run/Delete"
+              - "Job/Cancel"
+              - "Run/Update"
+              - "Job/Delete"
+              - "Credentials/Create"
+              - "Job/Configure"
+              - "Job/Workspace"
+              - "Lockable Resources/Reserve"
+              - "Job/ViewStatus"
   securityRealm:
     # local:
     #   allowsSignup: false
@@ -28,34 +116,34 @@ jenkins:
     #     - id: "admin"
     #       password: "admin"
     # see docs: https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos/saml
-    # saml:
-    #   binding: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
-    #   displayNameAttributeName: "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
-    #   groupsAttributeName: "http://schemas.xmlsoap.org/claims/Group"
-    #   idpMetadataConfiguration:
-    #     period: 0
-    #     url: "https://sts.vbc.ac.at/FederationMetadata/2007-06/FederationMetadata.xml"
-    #     xml: {}
-    #  maximumAuthenticationLifetime: 86400
-    #  usernameAttributeName: "NameID"
-    #  usernameCaseConversion: "none"
-    # docs https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos/active-directory
-    activeDirectory:
-      cache:
-        size: 1000
-        ttl: 600
-      customDomain: true
-      domains:
-        - bindName: "${LDAP_BIND_DN:-cn=login,cn=Users,dc=imp,dc=univie,dc=ac,dc=at}"
-          bindPassword: "${LDAP_BIND_PASSWD:-super_secret}"
-          name: "imp.univie.ac.at"
-          servers: "dc-impimba-1.imp.univie.ac.at:3268,dc-impimba-2.imp.univie.ac.at:3268,dc-impimba-3.imp.univie.ac.at:3268"
-          tlsConfiguration: TRUST_ALL_CERTIFICATES
-      groupLookupStrategy: RECURSIVE
-      removeIrrelevantGroups: false
-      startTls: true
-      internalUsersDatabase:
-        jenkinsInternalUser: "admin"
+    saml:
+      binding: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+      displayNameAttributeName: "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
+      emailAttributeName: "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
+      groupsAttributeName: "http://schemas.xmlsoap.org/claims/Group"
+      idpMetadataConfiguration:
+        # refresh period is in minutes
+        period: 60
+        url: "${SAML_METADATA_URL:-https://sts.vbc.ac.at/federationmetadata/2007-06/federationmetadata.xml}"
+      maximumAuthenticationLifetime: 86400
+      usernameCaseConversion: "none"
+    ## docs https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos/active-directory
+    # activeDirectory:
+    #   cache:
+    #     size: 1000
+    #     ttl: 600
+    #   customDomain: true
+    #   domains:
+    #     - bindName: "${LDAP_BIND_DN:-cn=login,cn=Users,dc=imp,dc=univie,dc=ac,dc=at}"
+    #       bindPassword: "${LDAP_BIND_PASSWD:-super_secret}"
+    #       name: "imp.univie.ac.at"
+    #       servers: "dc-impimba-1.imp.univie.ac.at:3268,dc-impimba-2.imp.univie.ac.at:3268,dc-impimba-3.imp.univie.ac.at:3268"
+    #       tlsConfiguration: TRUST_ALL_CERTIFICATES
+    #   groupLookupStrategy: RECURSIVE
+    #   removeIrrelevantGroups: false
+    #   startTls: true
+    #   internalUsersDatabase:
+    #     jenkinsInternalUser: "admin"
   remotingSecurity:
     enabled: true
   crumbIssuer:
@@ -101,10 +189,6 @@ jenkins:
         remoteFS: "/srv/jenkins"
         retentionStrategy: "always"
   views:
-    - all:
-        name: "all"
-    - myView:
-        name: "all my jobs"
     - list:
         columns:
           - "status"
