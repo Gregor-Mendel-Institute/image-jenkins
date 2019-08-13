@@ -1,9 +1,9 @@
 
-# latest alpine, others: jdk11, lts, slim
+# latest alpine, others: jdk11, lts, slim, centos
 # https://jenkins.io/download/lts/
 # https://hub.docker.com/r/jenkins/jenkins/tags
 #FROM jenkins/jenkins:2.176.2-alpine
-FROM jenkins/jenkins:2.189-alpine
+FROM jenkins/jenkins:2.191-centos
 
 COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
 RUN /usr/local/bin/install-plugins.sh < /usr/share/jenkins/ref/plugins.txt
@@ -23,6 +23,8 @@ RUN unzip /tmp/op_linux_amd64_v0.5.7.zip op -d /usr/local/bin/
 USER jenkins
 # groovy init scripts, must be in JENKINS_HOME
 COPY init.groovy.d/ /usr/share/jenkins/ref/init.groovy.d/
+# config file for bootstrapping credentials setup
+COPY initial_credentials.yaml /usr/share/jenkins/ref/
 
 # Jenkins config as code (JCasC) setup
 ENV CASC_JENKINS_CONFIG /usr/share/jenkins/jenkins.conf.d/

@@ -15,14 +15,14 @@ unclassified:
   globalLibraries:
     libraries:
       - name: "vbc-cicd"
-        defaultVersion: "${SEED_JOB_BRANCH:-master}"
+        defaultVersion: "${GLOBAL_CICD_LIB_VERSION:-master}"
         implicit: true
         retriever:
           modernSCM:
             scm:
               git:
-                remote: "${SEED_JOB_REPO_URL}"
-                credentialsId: "${SEED_JOB_CREDENTIALS_ID}"
+                remote: "${GLOBAL_CICD_LIB_REPO_URL}"
+                credentialsId: "${GLOBAL_CICD_LIB_CREDENTIALS_ID}"
                 traits:
                   - branchDiscoveryTrait
                   - tagDiscoveryTrait

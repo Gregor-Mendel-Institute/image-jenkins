@@ -13,8 +13,6 @@ security:
     authenticators:
       - global:
           strategy: "triggeringUsersAuthorizationStrategy"
-      - global:
-          strategy: "anonymousAuthorizationStrategy"
   sSHD:
     port: -1
 ...

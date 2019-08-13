@@ -8,107 +8,111 @@ jenkins:
   globalNodeProperties:
     - envVars:
         env:
-          - key: FOO
-            value: BAR
-  # authorizationStrategy:
+          - key: GLOBAL_JOB_DISABLE
+            value: ${JENKINS_GLOBAL_JOB_DISABLE:-false}
+  authorizationStrategy:
     #
     # role based:
     # https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos/role-strategy-auth
-    # projectMatrix:
-    #   permissions:
-    #     # should be perm.* groups, but saml does not deliver domain local groups
-    #     # see https://social.technet.microsoft.com/wiki/contents/articles/13829.ad-fs-2-0-domain-local-groups-in-a-claim.aspx
-    #     - "Overall/ViewStatus:anonymous" # make links to embeddable build status work
-    #     - "Overall/Administer:jenkins_api_admin"
-    #     - "Overall/Administer:adm_ebirn"
-    #     - "Overall/Administer:role.it.backoffice.admin"
-    #     - "Overall/Read:admin"
-    #     - "Overall/Read:adm_ebirn"
-    #     - "Overall/Read:role.it.backoffice"
-  authorizationStrategy:
-    roleBased:
-      roles:
-        global:
-          - assignments:
-              - "anonymous"
-            name: "Build status viewer"
-            pattern: ".*"
-            permissions:
-              - "Job/ViewStatus"
-          - assignments:
-              - "authenticated"
-            name: "Reader"
-            pattern: ".*"
-            permissions:
-              - "Overall/Read"
-          - assignments:
-              - "adm_ebirn"
-            name: "admin"
-            pattern: ".*"
-            permissions:
-              - "Job/Move"
-              - "Job/Build"
-              - "Credentials/Delete"
-              - "Credentials/ManageDomains"
-              - "Lockable Resources/Unlock"
-              - "View/Create"
-              - "Agent/Configure"
-              - "Job/Read"
-              - "Credentials/Update"
-              - "Agent/Create"
-              - "Job/Delete"
-              - "Agent/Build"
-              - "View/Configure"
-              - "Lockable Resources/Reserve"
-              - "Agent/Provision"
-              - "SCM/Tag"
-              - "Job/Create"
-              - "Job/Discover"
-              - "Credentials/View"
-              - "Agent/Connect"
-              - "Agent/Delete"
-              - "Run/Replay"
-              - "Agent/Disconnect"
-              - "Run/Delete"
-              - "Job/Cancel"
-              - "Overall/Read"
-              - "Run/Update"
-              - "Credentials/Create"
-              - "Overall/Administer"
-              - "View/Delete"
-              - "Job/Configure"
-              - "Job/Workspace"
-              - "View/Read"
-              - "Job/ViewStatus"
-        items:
-        # this is for roles scoped to jobs
-          - assignments:
-              - "role.it.backoffice.admin"
-              - "role.it.backoffice"
-            name: "IT Project dev"
-            pattern: "it/.*"
-            permissions:
-              - "Job/Move"
-              - "Job/Build"
-              - "SCM/Tag"
-              - "Credentials/Delete"
-              - "Job/Create"
-              - "Credentials/ManageDomains"
-              - "Lockable Resources/Unlock"
-              - "Job/Discover"
-              - "Job/Read"
-              - "Credentials/View"
-              - "Credentials/Update"
-              - "Run/Replay"
-              - "Run/Delete"
-              - "Job/Cancel"
-              - "Run/Update"
-              - "Job/Delete"
-              - "Credentials/Create"
-              - "Job/Configure"
-              - "Job/Workspace"
-              - "Lockable Resources/Reserve"
-              - "Job/ViewStatus"
+    projectMatrix:
+      permissions:
+        # should be perm.* groups, but saml does not deliver domain local groups
+        # see https://social.technet.microsoft.com/wiki/contents/articles/13829.ad-fs-2-0-domain-local-groups-in-a-claim.aspx
+        - "Overall/Administer:jenkins_api_admin"
+        - "Overall/Administer:adm_ebirn"
+        - "Overall/Administer:role.it.backoffice.admin"
+        - "Overall/Read:admin"
+        - "Overall/Read:adm_ebirn"
+        - "Overall/Read:role.it.backoffice"
+        - "Job/ViewStatus:anonymous" # make links to embeddable build status work
+        - "Agent/Build:anonymous" # anonymously triggered jobs may run jobs on agents - which jobs will be part of project authz
+        - "Agent/Build:authenticated" # anonymously triggered jobs may run
+  # authorizationStrategy:
+  #   roleBased:
+  #     roles:
+  #       global:
+  #         - assignments:
+  #             - "anonymous"
+  #           name: "Build status viewer"
+  #           pattern: ".*"
+  #           permissions:
+  #             - "Job/ViewStatus"
+  #         - assignments:
+  #             - "authenticated"
+  #           name: "Reader"
+  #           pattern: ".*"
+  #           permissions:
+  #             - "Overall/Read"
+  #         - assignments:
+  #             - "adm_ebirn"
+  #             - "jenkins_api_admin"
+  #             - "role.it.backoffice.admin"
+  #           name: "admin"
+  #           pattern: ".*"
+  #           permissions:
+  #             - "Job/Move"
+  #             - "Job/Build"
+  #             - "Credentials/Delete"
+  #             - "Credentials/ManageDomains"
+  #             - "Lockable Resources/Unlock"
+  #             - "View/Create"
+  #             - "Agent/Configure"
+  #             - "Job/Read"
+  #             - "Credentials/Update"
+  #             - "Agent/Create"
+  #             - "Job/Delete"
+  #             - "Agent/Build"
+  #             - "View/Configure"
+  #             - "Lockable Resources/Reserve"
+  #             - "Agent/Provision"
+  #             - "SCM/Tag"
+  #             - "Job/Create"
+  #             - "Job/Discover"
+  #             - "Credentials/View"
+  #             - "Agent/Connect"
+  #             - "Agent/Delete"
+  #             - "Run/Replay"
+  #             - "Agent/Disconnect"
+  #             - "Run/Delete"
+  #             - "Job/Cancel"
+  #             - "Overall/Read"
+  #             - "Run/Update"
+  #             - "Credentials/Create"
+  #             - "Overall/Administer"
+  #             - "View/Delete"
+  #             - "Job/Configure"
+  #             - "Job/Workspace"
+  #             - "View/Read"
+  #             - "Job/ViewStatus"
+  #       items:
+  #       # this is for roles scoped to jobs
+  #         - assignments:
+  #             - "role.it.backoffice.admin"
+  #             - "role.it.backoffice"
+  #           name: "IT Projects"
+  #           pattern: "it.*"
+  #           permissions:
+  #             - "Job/Move"
+  #             - "Job/Build"
+  #             - "SCM/Tag"
+  #             - "Credentials/Delete"
+  #             - "Job/Create"
+  #             - "Credentials/ManageDomains"
+  #             - "Lockable Resources/Unlock"
+  #             - "Job/Discover"
+  #             - "Job/Read"
+  #             - "Credentials/View"
+  #             - "Credentials/Update"
+  #             - "Run/Replay"
+  #             - "Run/Delete"
+  #             - "Job/Cancel"
+  #             - "Run/Update"
+  #             - "Job/Delete"
+  #             - "Credentials/Create"
+  #             - "Job/Configure"
+  #             - "Job/Workspace"
+  #             - "Lockable Resources/Reserve"
+  #             - "Job/ViewStatus"
   securityRealm:
     # local:
     #   allowsSignup: false
@@ -159,9 +163,10 @@ jenkins:
             maxNumRetries: 10
             port: 22
             retryWaitTime: 15
-            sshHostKeyVerificationStrategy: "nonVerifyingKeyVerificationStrategy"
+            # sshHostKeyVerificationStrategy: "nonVerifyingKeyVerificationStrategy"
+            sshHostKeyVerificationStrategy: "knownHostsFileKeyVerificationStrategy"
             host: "it-build-clip-1.vbc.ac.at"
-        name: "it-build-clip-1.vbc.ac.at"
+        name: "it-build-clip-1"
         nodeDescription: "build clip container images"
         numExecutors: 8
         remoteFS: "/srv/jenkins"
@@ -172,7 +177,7 @@ jenkins:
           ssh:
             <<: *ssh_launcher
             host: "it-builder-1.vbc.ac.at"
-        name: "it-builder-1.vbc.ac.at"
+        name: "it-builder-1"
         nodeDescription: "build all the things"
         numExecutors: 8
         remoteFS: "/srv/jenkins"
@@ -183,12 +188,17 @@ jenkins:
           ssh:
             <<: *ssh_launcher
             host: "it-builder-2.vbc.ac.at"
-        name: "it-builder-2.vbc.ac.at"
+        name: "it-builder-2"
         nodeDescription: "build all the things"
         numExecutors: 8
         remoteFS: "/srv/jenkins"
         retentionStrategy: "always"
+  primaryView:
+    all:
+      name: "All"
   views:
+    - all:
+        name: "All"
     - list:
         columns:
           - "status"

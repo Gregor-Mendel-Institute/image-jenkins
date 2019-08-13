@@ -6,6 +6,18 @@ jobs:
       folder('it') {
         displayName('VBC IT')
         description('all things VBC IT')
+        authorization {
+            permissionAll('role.it.backoffice')
+            permissionAll('role.it.backoffice.admin')
+        }
+
+        // prime with credentials store setup
+        properties {
+            folderCredentialsProperty {
+                domainCredentials {
+                }
+            }
+        }
       }
 
   # seed job for all job discovery
@@ -16,7 +28,8 @@ jobs:
 
         definition {
           cpsScm {
-            // If selected, try to obtain the Pipeline script contents directly from the SCM without performing a full checkout.
+            // If selected, try to obtain the Pipeline script contents
+            // directly from the SCM without performing a full checkout.
             lightweight(true)
             scm {
               git {
