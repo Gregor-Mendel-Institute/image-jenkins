@@ -1,4 +1,3 @@
-
 // docs
 // https://support.cloudbees.com/hc/en-us/articles/217708168-create-credentials-from-groovy
 // https://gist.github.com/ivan-pinatti/830ec918781060df03b12efd4a14096e
@@ -9,7 +8,8 @@ import groovy.json.JsonSlurper
 
 import org.yaml.snakeyaml.Yaml
 
-import jenkins.model.*
+import jenkins.model.*;
+import hudson.util.Secret;
 import com.cloudbees.hudson.plugins.folder.*;
 import com.cloudbees.hudson.plugins.folder.properties.*;
 import com.cloudbees.hudson.plugins.folder.properties.FolderCredentialsProvider.FolderCredentialsProperty;
@@ -17,7 +17,10 @@ import com.cloudbees.plugins.credentials.impl.*;
 import com.cloudbees.plugins.credentials.*;
 import com.cloudbees.plugins.credentials.domains.*;
 
-
+import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
+import com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey;
+import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl
+import java.lang.StringBuffer;
 
 Map itemCache = [:]
 String opToken = null
@@ -26,28 +29,31 @@ Jenkins instance = Jenkins.instance
 def signin(String domain, String username, String password, String masterSecret) {
     println "signing in to 1Password using credentials for: ${username} in ${domain}."
 
-
     // usage: op signin <signinaddress> <emailaddress> <secretkey> [--output=raw]
+    Process op_proc = "op signin ${domain} ${username} ${masterSecret} --output=raw".execute()
+    // send password to process
+    def writer = op_proc.out.newPrintWriter()
+    writer.println(password)
+    writer.flush()
 
+    //op_proc.waitForOrKill(10000)
 
-    String[] env_vars = []
-    File op_pwd = (System.getProperty('user.home') as File)
-
-    Process op_proc = 'echo $OP_PASSWORD'.execute(env_vars,op_pwd).pipeTo('op signin $OP_DOMAIN $OP_USERNAME $OP_MASTER_KEY --output=raw'.execute(env_vars, op_pwd))
+    StringBuffer stdout = new StringBuffer()
+    StringBuffer stderr = new StringBuffer()
+    op_proc.waitForProcessOutput(stdout, stderr)
 
     int exit_code = op_proc.exitValue()
 
     if (exit_code) {
         println "failed to signin:"
-        println op_proc.errorStream.readLines().join("\n")
+        println "${stderr}"
         return null
     }
 
-
     // signin was successful, return token
     println "1Password signin was success, I got a token."
-    String onePassToken = op_proc.getText().trim()
-    opToken = onePassToken
+    String onePassToken = stdout.toString().trim()
+    this.opToken = onePassToken
 
     return onePassToken
 }
@@ -55,14 +61,18 @@ def signin(String domain, String username, String password, String masterSecret)
 def String lookup(String itemName, String vaultName=null, String sectionName=null, String fieldName = 'password') {
 
     Map raw = raw(itemName, vaultName)
+    if (raw == null) {
+        return null
+    }
     String lookupValue = null
 
     if (sectionName) {
-        for (section in raw.sections) {
+        for (section in raw.details.sections) {
             if (section.title == sectionName) {
                 for (field in section.fields) {
                     if (field.t == fieldName) {
                         lookupValue = field.v
+                        break
                     }
                 }
             }
@@ -78,7 +88,7 @@ def String lookup(String itemName, String vaultName=null, String sectionName=nul
         }
     }
 
-    println "lookup value: ${lookupValue}"
+    //println "lookup value '${sectionName}->${fieldName}': ${lookupValue}"
     return lookupValue
 }
 
@@ -86,7 +96,7 @@ def String lookup(String itemName, String vaultName=null, String sectionName=nul
 //@Memoized(maxCacheSize=100)
 def Map raw(String itemName, String vault = null) {
 
-    def cached_item = itemCache.get(itemName)
+    def cached_item = this.itemCache.get(itemName)
     if (cached_item) {
         println "returning item '${itemName}' from cache."
         return cached_item
@@ -96,26 +106,53 @@ def Map raw(String itemName, String vault = null) {
     String vault_param = vault ? "--vault=${vault}" : ""
 
     // avoid exposing the token in job logs
-    String[] env_vars = ["OP_TOKEN=${opToken}"]
-    File op_pwd = (System.getProperty('user.home') as File)
+    //String[] env_vars = ["OP_TOKEN=${this.opToken}"]
+    //File op_pwd = (System.getProperty('user.home') as File)
 
 
-    Process lookup_proc = 'echo $OP_TOKEN | ' + "op get item ${itemName} ${vault_param}".execute(env_vars, op_pwd)
+    ProcessBuilder builder = new ProcessBuilder()
+    builder.command(["op", "get", "item", itemName, vault_param])
+    builder.environment().put("OP_TOKEN", this.opToken)
+    builder.directory((System.getProperty('user.home') as File))
 
+    Process lookup_proc = builder.start()
+
+    // write 1pass session token to stdin
+    def writer = lookup_proc.out.newPrintWriter()
+    writer.println(this.opToken)
+    writer.flush()
+
+    lookup_proc.waitForOrKill(10000)
     if (lookup_proc.exitValue()) {
-        println "failed to execute lookup of item ${itemName}"
+        println "failed to execute lookup of item '${itemName}':"
+        println "${lookup_proc.err}"
         return null
     }
 
     JsonSlurper slurper = new JsonSlurper()
-    Map item_data = slurper.parse(lookup_proc.getText())
+    Map item_data = slurper.parseText(lookup_proc.text)
 
-    //echo "raw item data: ${item_raw}"
+    //println "raw item data: ${item_data}"
 
-    itemCache[itemName] = item_data
+    this.itemCache[itemName] = item_data
     return item_data
 }
 
+def fieldValue(Map credential, String field, String defaultValue = "") {
+    List<Map> onepass_mappings = credential.get('1password', [])
+    Map fieldMapping = onepass_mappings.find { it.target == field }
+
+    // no lookup defined, return direct field value
+    if (fieldMapping == null) {
+        println "no field mapping for '${field}'"
+        return credential.get(field, defaultValue)
+    }
+    println "field mapping for '${field}': ${fieldMapping}"
+    // return lookup from 1pass
+    def lookupVal =  lookup(fieldMapping.item, fieldMapping.vault, fieldMapping.section, fieldMapping.field)
+    return lookupVal ? lookupVal : defaultValue
+
+}
 
 def Domain createCredentialsDomain(Map domainConfig=null) {
     if(domainConfig == null || domainConfig.isEmpty()) {
@@ -169,9 +206,35 @@ def processDomainCredentials(List<Map> domainCredentialConfigList, Object creden
         List<Credentials> credList = []
         for (Map credential in credentialData) {
             println "processing credential ${credential.id}"
-            Credentials cred = new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, credential.id, credential.description, "user", "password")
+
+            Credentials cred = null
+            switch(credential.type) {
+                case 'usernamepassword':
+                    credList.add(new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, credential.id, credential.description, fieldValue(credential, "username"), fieldValue(credential, "password")))
+                    break
+
+                case 'sshprivatekey':
+                    def rawPrivatekey = fieldValue(credential, "privatekey")
+
+                    // 1Password specific workaround for single-line secret store
+                    def sanePrivatekey = rawPrivatekey.replace(' RSA PRIVATE ', 'RSAPRIVATE').replace(' ', '\n').replace('RSAPRIVATE', ' RSA PRIVATE ')
+                    def keySource = new BasicSSHUserPrivateKey.DirectEntryPrivateKeySource(sanePrivatekey)
+                    def username = fieldValue(credential, "username")
+                    def password = fieldValue(credential, "password")
+                    credList.add(new BasicSSHUserPrivateKey(CredentialsScope.GLOBAL, credential.id, username, keySource, password, credential.description ))
+                    break
+
+                case 'string':
+                    Secret secret = Secret.fromString(fieldValue(credential, "secret"))
+                    credList.add(new StringCredentialsImpl(CredentialsScope.GLOBAL, credential.id, credential.description, secret))
+                    break
+
+                default:
+                    println "WARNING: don't know how to handle credentials of type '${credential.type}', skipping."
+
+            }
             //credentialStore.addCredentials(domain, cred)
-            credList.add(cred)
+
         }
 
         credentialStore.addDomain(domain, credList)
@@ -188,6 +251,22 @@ def removeAllDomains(store) {
 }
 
 println "CREDENTIALS ==================================================================================================="
+
+println "consuming 1pass service credentials"
+
+// jenkins should not allow access to these in builds, otherwise we are in trouble
+// username, password, domain, masterkey
+this.itemCache = [:]
+this.opToken = null
+String op_token = this.signin(System.getenv("JENKINS_ONEPASS_DOMAIN"), System.getenv("JENKINS_ONEPASS_USERNAME"), System.getenv("JENKINS_ONEPASS_PASSWORD"), System.getenv("JENKINS_ONEPASS_MASTERKEY"))
+if (this.opToken) {
+    println "1Password signin successful."
+}
+else {
+    println "1Password signin failed, bailing out."
+    return
+}
+
 println "WARNING credentials bootstrap from init script is not implemented. doing nothing."
 String configFilePath = "${System.getProperty('user.home')}/initial_credentials.yaml"
 
