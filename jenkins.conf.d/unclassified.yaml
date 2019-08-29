@@ -24,6 +24,7 @@ unclassified:
                 remote: "${GLOBAL_CICD_LIB_REPO_URL}"
                 credentialsId: "${GLOBAL_CICD_LIB_CREDENTIALS_ID}"
                 traits:
+                  # this may currently cause this repo to be mistaken as github
                   - branchDiscoveryTrait
                   - tagDiscoveryTrait
                   # with git plugin 4.0
@@ -51,4 +52,24 @@ unclassified:
         towerDisplayName: "VBC Tower"
         towerTrustCert: false
         towerURL: "https://tower.vbc.ac.at"
+  artifactoryBuilder:
+    artifactoryServers:
+      - serverId: artifactoryVBC
+        artifactoryUrl: https://artifactory.imp.ac.at
+        deployerCredentialsConfig:
+          credentialsId: jenkins_artifactory_creds
+        # resolverCredentialsConfig:
+    useCredentialsPlugin: true
+  timestamperConfig:
+    allPipelines: true
+    elapsedTimeFormat: "'<b>'HH:mm:ss.S'</b> '"
+    systemTimeFormat: "'<b>'HH:mm:ss'</b> '"
+  gitHubPluginConfig:
+    # github-gmi-hook-manager
+    configs:
+      - credentialsId: "github-gmi-hook-admin"
+        name: "Github GMI"
+      - credentialsId: "github-1001genomes-hook-admin"
+        name: "Github 1001 genomes"
+    hookUrl: "${JENKINS_GITHUB_WEBOOK_URL:-https://webhooks.vbc.ac.at/test-jenkins/github}"
 ...

@@ -1,21 +1,22 @@
+artifactory:3.3.2
 matrix-project:1.14
 script-security:1.62
-bitbucket:1.1.10
+bitbucket:1.1.11
 github:1.29.4
 active-directory:2.16
 saml:1.1.2
 ssh-slaves:1.30.1
 timestamper:1.10
 matrix-auth:2.4.2
-jira:3.0.8
+jira:3.0.9
 # need this for correct branch discovery traits in config as code setup
 #git:4.0.0-beta10
 git:3.12.0
 docker-workflow:1.19
 Office-365-Connector:4.11.0
 build-monitor:1.12+build.201809061734
-configuration-as-code:1.27
-job-dsl:1.75
+configuration-as-code:1.29
+job-dsl:1.76
 blueocean:1.18.1
 authorize-project:1.3.0
 embeddable-build-status:2.0.2
@@ -32,3 +33,6 @@ groovy:2.2
 # pipeline:2.6
 # workflow-job:2.33
 # script-security:1.62
+# allow project parameters to be a branch / tag / revision from given repo
+git-parameter:0.9.11
+ws-cleanup:0.37

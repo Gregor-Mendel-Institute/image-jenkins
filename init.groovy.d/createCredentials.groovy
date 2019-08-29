@@ -139,7 +139,7 @@ def Map raw(String itemName, String vault = null) {
 }
 
 def fieldValue(Map credential, String field, String defaultValue = "") {
-    List<Map> onepass_mappings = credential.get('1password', [])
+    List<Map> onepass_mappings = credential.get('onepass', [])
     Map fieldMapping = onepass_mappings.find { it.target == field }
 
     // no lookup defined, return direct field value
@@ -210,7 +210,7 @@ def processDomainCredentials(List<Map> domainCredentialConfigList, Object creden
             Credentials cred = null
             switch(credential.type) {
                 case 'usernamepassword':
-                    credList.add(new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, credential.id, credential.description, fieldValue(credential, "username"), fieldValue(credential, "password")))
+                    credList.add(new UsernamePasswordCredentialsImpl(CredentialsScope.valueOf(credential.scope), credential.id, credential.description, fieldValue(credential, "username"), fieldValue(credential, "password")))
                     break
 
                 case 'sshprivatekey':
@@ -221,12 +221,12 @@ def processDomainCredentials(List<Map> domainCredentialConfigList, Object creden
                     def keySource = new BasicSSHUserPrivateKey.DirectEntryPrivateKeySource(sanePrivatekey)
                     def username = fieldValue(credential, "username")
                     def password = fieldValue(credential, "password")
-                    credList.add(new BasicSSHUserPrivateKey(CredentialsScope.GLOBAL, credential.id, username, keySource, password, credential.description ))
+                    credList.add(new BasicSSHUserPrivateKey(CredentialsScope.valueOf(credential.scope), credential.id, username, keySource, password, credential.description ))
                     break
 
                 case 'string':
                     Secret secret = Secret.fromString(fieldValue(credential, "secret"))
-                    credList.add(new StringCredentialsImpl(CredentialsScope.GLOBAL, credential.id, credential.description, secret))
+                    credList.add(new StringCredentialsImpl(CredentialsScope.valueOf(credential.scope), credential.id, credential.description, secret))
                     break
 
                 default:
@@ -258,7 +258,12 @@ println "consuming 1pass service credentials"
 // username, password, domain, masterkey
 this.itemCache = [:]
 this.opToken = null
-String op_token = this.signin(System.getenv("JENKINS_ONEPASS_DOMAIN"), System.getenv("JENKINS_ONEPASS_USERNAME"), System.getenv("JENKINS_ONEPASS_PASSWORD"), System.getenv("JENKINS_ONEPASS_MASTERKEY"))
+
+Yaml yamlParser = new Yaml()
+Map opBoot = yamlParser.load("${System.getProperty('user.home')}/onepass_boot.yaml")
+
+// String op_token = this.signin(System.getenv("JENKINS_ONEPASS_DOMAIN"), System.getenv("JENKINS_ONEPASS_USERNAME"), System.getenv("JENKINS_ONEPASS_PASSWORD"), System.getenv("JENKINS_ONEPASS_MASTERKEY"))
+String op_token = this.signin(opBoot.domain, opBoot.username, opBoot.password, opBoot.masterkey)
 if (this.opToken) {
     println "1Password signin successful."
 }
@@ -267,7 +272,6 @@ else {
     return
 }
 
-println "WARNING credentials bootstrap from init script is not implemented. doing nothing."
 String configFilePath = "${System.getProperty('user.home')}/initial_credentials.yaml"
 
 File credentialsFile = new File(configFilePath)
@@ -275,9 +279,9 @@ if(!credentialsFile.exists()) {
     println "no such file: ${configFilePath} will not try to do setup"
     return
 }
+println "using credentials file in ${configFilePath}"
 
-Yaml parser = new Yaml()
-Map credentialsConfig = parser.load((configFilePath as File).text)
+Map credentialsConfig = yamlParser.load((configFilePath as File).text)
 
 println "i got this from yaml: ${credentialsConfig}"
 

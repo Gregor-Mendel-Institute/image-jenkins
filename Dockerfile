@@ -3,7 +3,7 @@
 # https://jenkins.io/download/lts/
 # https://hub.docker.com/r/jenkins/jenkins/tags
 #FROM jenkins/jenkins:2.176.2-alpine
-FROM jenkins/jenkins:2.191-centos
+FROM jenkins/jenkins:2.193-centos
 
 COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
 RUN /usr/local/bin/install-plugins.sh < /usr/share/jenkins/ref/plugins.txt

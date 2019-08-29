@@ -4,42 +4,122 @@ jobs:
   # setup IT dept special folder
   - script: >
       folder('it') {
-        displayName('VBC IT')
-        description('all things VBC IT')
-        authorization {
-            permissionAll('role.it.backoffice')
-            permissionAll('role.it.backoffice.admin')
-        }
+          displayName('VBC IT')
+          description('all things VBC IT')
+          authorization {
+              permissionAll('role.it.backoffice')
+              permissionAll('role.it.backoffice.admin')
+          }
 
-        // prime with credentials store setup
-        properties {
-            folderCredentialsProperty {
-                domainCredentials {
-                }
-            }
-        }
+          // prime with credentials store setup
+          properties {
+              folderCredentialsProperty {
+                  domainCredentials {
+                  }
+              }
+
+              folderProperties {
+                  properties {
+        /*
+                      stringProperty {
+                          key("SEED_JOB_CREDENTIALS_ID")
+                          value("${SEED_JOB_CREDENTIALS_ID}")
+                      }
+        */
+                      stringProperty {
+                          key("SEED_JOB_CONFIG_REPO_URL")
+                          value("${SEED_JOB_CONFIG_REPO_URL}")
+                      }
+                      stringProperty {
+                          key("SEED_JOB_CONFIG_VERSION")
+                          value("${SEED_JOB_CONFIG_VERSION}")
+                      }
+                      stringProperty {
+                          key("SEED_JOB_CONFIG_FILE")
+                          value("${SEED_JOB_CONFIG_FILE}")
+                      }
+                  }
+              }
+          }
       }
 
   # seed job for all job discovery
   - script: >
       pipelineJob('it/seed') {
         displayName('CICD seed')
+        description('global job discovery and configuration, build by adm accounts only')
+
         concurrentBuild(false)
+        authorization {
+            // only admin accounts will be allowed to trigger global reconfig
+            blocksInheritance(true)
+            permission('hudson.model.Item.Read', 'role.it.backoffice')
+            permissionAll('role.it.backoffice.admin')
+        }
+
+        // these will be injected after the first run with the folder properties
+        parameters {
+            // see https://plugins.jenkins.io/git-parameter
+            // and https://issues.jenkins-ci.org/browse/JENKINS-49438
+
+            stringParam {
+                name("SEED_JOB_CONFIG_REPO_URL")
+                defaultValue("${SEED_JOB_CONFIG_REPO_URL}")
+                description('repo to retrieve discovery info from')
+                trim(true)
+            }
+
+            // credentialsParam("SEED_JOB_CREDENTIALS_ID") {
+            //     type('com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey')
+            //     defaultValue("${SEED_JOB_CREDENTIALS_ID}")
+            //     description('credentials to access seed job config repo')
+            // }
+
+            gitParameterDefinition {
+                name('SEED_JOB_CONFIG_VERSION')
+                useRepository("${SEED_JOB_CONFIG_REPO_URL}")
+                defaultValue("${SEED_JOB_CONFIG_VERSION}")
+                type('BRANCH_TAG')
+                branch('')
+                branchFilter('.*')
+                tagFilter('.*')
+                selectedValue('DEFAULT')
+                sortMode('ASCENDING_SMART')
+                quickFilterEnabled(false)
+                description('which config (in host_vars) from linux-baseline repo')
+            }
+
+            stringParam {
+                name('SEED_JOB_CONFIG_FILE')
+                defaultValue("${SEED_JOB_CONFIG_FILE}")
+                description('file to read job discovery from')
+                trim(true)
+            }
+        }
 
         definition {
           cpsScm {
             // If selected, try to obtain the Pipeline script contents
             // directly from the SCM without performing a full checkout.
-            lightweight(true)
+            // lightweight(true)
             scm {
               git {
                 // Specify the branches to examine for changes and to build.
                 //FIXME make this configurable
-                branch("${SEED_JOB_BRANCH}")
+                branch("${SEED_JOB_VERSION}")
+                // referencing seed job repo
                 remote {
-                  credentials("${SEED_JOB_CREDENTIALS_ID}")
-                  url("${SEED_JOB_REPO_URL}")
+                    name("seed")
+                    credentials("${SEED_JOB_CREDENTIALS_ID}")
+                    url("${SEED_JOB_REPO_URL}")
                 }
+                extensions {
+                    wipeOutWorkspace()
+                    // cleanBeforeCheckout()
+
+                }
+                branch("seed/${SEED_JOB_VERSION}")
+                //branch("config/${SEED_JOB_CONFIG_VERSION}"0
               }
             }
             scriptPath("Jenkinsfile")
