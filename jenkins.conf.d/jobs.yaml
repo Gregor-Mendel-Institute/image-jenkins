@@ -45,7 +45,7 @@ jobs:
 
   # seed job for all job discovery
   - script: >
-      pipelineJob('it/seed') {
+      def seedJob = pipelineJob('it/seed') {
         displayName('CICD seed')
         description('global job discovery and configuration, build by adm accounts only')
 
@@ -81,7 +81,7 @@ jobs:
                 defaultValue("${SEED_JOB_CONFIG_VERSION}")
                 type('BRANCH_TAG')
                 branch('')
-                branchFilter('.*')
+                branchFilter('origin/(.*)')
                 tagFilter('.*')
                 selectedValue('DEFAULT')
                 sortMode('ASCENDING_SMART')

@@ -25,6 +25,10 @@ jenkins:
         - "Overall/Read:adm_ebirn"
         - "Overall/Read:role.it.backoffice"
         - "Job/ViewStatus:anonymous" # make links to embeddable build status work
+        - "Job/Discover:role.it.backoffice"
+        - "Job/Read:role.it.backoffice"
+        - "Job/Build:role.it.backoffice"
+        - "Job/Cancel:role.it.backoffice"
         - "Agent/Build:anonymous" # anonymously triggered jobs may run jobs on agents - which jobs will be part of project authz
         - "Agent/Build:authenticated" # anonymously triggered jobs may run
   # authorizationStrategy:

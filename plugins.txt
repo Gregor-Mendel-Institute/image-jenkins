@@ -28,7 +28,7 @@ role-strategy:2.13
 pipeline-utility-steps:2.3.0
 # fine tuning of branch/tag build behavior
 basic-branch-build-strategies:1.3.2
-# forrunning groovy steps and system groovy in the seed job
+# for running groovy steps and system groovy in the seed job
 groovy:2.2
 # pipeline:2.6
 # workflow-job:2.33
@@ -36,3 +36,12 @@ groovy:2.2
 # allow project parameters to be a branch / tag / revision from given repo
 git-parameter:0.9.11
 ws-cleanup:0.37
+#
+# pinned to 1.15, not 1.17.1 because of https://issues.jenkins-ci.org/browse/JENKINS-57435 breaking seed job ssh key import
+#ssh-credentials:1.15
+# as a consequence, use later version here: (not 1.30.1 at the time)
+#ssh-slaves:1.29.4
+# mostly for arageno et al
+ssh-agent:1.17
+# advanced view filtering
+view-job-filters:2.1.1

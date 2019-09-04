@@ -10,6 +10,7 @@ import org.yaml.snakeyaml.Yaml
 
 import jenkins.model.*;
 import hudson.util.Secret;
+import com.cloudbees.plugins.credentials.SecretBytes;
 import com.cloudbees.hudson.plugins.folder.*;
 import com.cloudbees.hudson.plugins.folder.properties.*;
 import com.cloudbees.hudson.plugins.folder.properties.FolderCredentialsProvider.FolderCredentialsProperty;
@@ -17,7 +18,7 @@ import com.cloudbees.plugins.credentials.impl.*;
 import com.cloudbees.plugins.credentials.*;
 import com.cloudbees.plugins.credentials.domains.*;
 
-import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
+import org.jenkinsci.plugins.plaincredentials.impl.*;
 import com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey;
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl
 import java.lang.StringBuffer;
@@ -229,6 +230,12 @@ def processDomainCredentials(List<Map> domainCredentialConfigList, Object creden
                     credList.add(new StringCredentialsImpl(CredentialsScope.valueOf(credential.scope), credential.id, credential.description, secret))
                     break
 
+                case 'file':
+                    byte[] plainText = (credential.path as File).bytes
+                    SecretBytes secret = new SecretBytes(false, plainText)
+                    credList.add(new FileCredentialsImpl(CredentialsScope.valueOf(credential.scope), credential.id, credential.description, credential.filename, secret))
+                    break
+
                 default:
                     println "WARNING: don't know how to handle credentials of type '${credential.type}', skipping."
 
@@ -260,10 +267,10 @@ this.itemCache = [:]
 this.opToken = null
 
 Yaml yamlParser = new Yaml()
-Map opBoot = yamlParser.load("${System.getProperty('user.home')}/onepass_boot.yaml")
+Map opBoot = yamlParser.load(("${System.getProperty('user.home')}/onepass_boot.yaml" as File).text)
 
 // String op_token = this.signin(System.getenv("JENKINS_ONEPASS_DOMAIN"), System.getenv("JENKINS_ONEPASS_USERNAME"), System.getenv("JENKINS_ONEPASS_PASSWORD"), System.getenv("JENKINS_ONEPASS_MASTERKEY"))
-String op_token = this.signin(opBoot.domain, opBoot.username, opBoot.password, opBoot.masterkey)
+String op_token = this.signin(opBoot.onepass_domain, opBoot.onepass_email, opBoot.onepass_password, opBoot.onepass_secret_key)
 if (this.opToken) {
     println "1Password signin successful."
 }
