@@ -71,5 +71,7 @@ unclassified:
         name: "Github GMI"
       - credentialsId: "github-1001genomes-hook-admin"
         name: "Github 1001 genomes"
-    hookUrl: "${JENKINS_GITHUB_WEBOOK_URL:-https://webhooks.vbc.ac.at/test-jenkins/github}"
+    # hookUrl: "${JENKINS_GITHUB_WEBOOK_URL:-https://webhooks.vbc.ac.at/test-jenkins/github}"
+    # FIXME hookUrl cannot be set here see https://github.com/jenkinsci/configuration-as-code-plugin/issues/672
+    # see also https://github.com/jenkinsci/github-plugin/pull/210
 ...
