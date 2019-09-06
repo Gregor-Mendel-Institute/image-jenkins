@@ -9,10 +9,10 @@ security:
   globalJobDslSecurityConfiguration:
     useScriptSecurity: true
   # will require project authorization plugin
-  # queueItemAuthenticator:
-  #   authenticators:
-  #     - global:
-  #       strategy: "triggeringUsersAuthorizationStrategy"
+  queueItemAuthenticator:
+    authenticators:
+      - global:
+          strategy: "triggeringUsersAuthorizationStrategy"
   sSHD:
     port: -1
 ...
