@@ -1,0 +1,6 @@
+# could install plugins here, but we want them during build, i.e. use plugins.txt in repo root
+# plugins:
+#   required: []
+#   sites:
+#   - id: "default"
+#     url: "https://updates.jenkins.io/update-center.json"
