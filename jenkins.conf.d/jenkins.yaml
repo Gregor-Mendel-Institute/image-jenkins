@@ -23,7 +23,7 @@ jenkins:
         - "Overall/Administer:role.it.backoffice.admin"
         - "Overall/Read:admin"
         - "Overall/Read:adm_ebirn"
-        - "Overall/Read:role.it.backoffice"
+        - "Overall/Read:authenticated"
         - "Job/ViewStatus:anonymous" # make links to embeddable build status work
         - "Job/Discover:role.it.backoffice"
         - "Job/Read:role.it.backoffice"
