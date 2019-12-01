@@ -25,11 +25,8 @@ unclassified:
                 credentialsId: "${GLOBAL_CICD_LIB_CREDENTIALS_ID}"
                 traits:
                   # this may currently cause this repo to be mistaken as github
-                  - branchDiscoveryTrait
-                  - tagDiscoveryTrait
-                  # with git plugin 4.0
-                  # - "gitBranchDiscovery"
-                  # - "gitTagDiscovery"
+                  - gitBranchDiscovery
+                  - gitTagDiscovery
   jiraGlobalConfiguration:
     sites:
       - credentialsId: "svc-jira-access"
