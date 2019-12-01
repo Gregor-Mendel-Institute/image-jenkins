@@ -2,8 +2,8 @@
 # latest alpine, others: jdk11, lts, slim, centos
 # https://jenkins.io/download/lts/
 # https://hub.docker.com/r/jenkins/jenkins/tags
-#FROM jenkins/jenkins:2.176.2-alpine
-FROM jenkins/jenkins:2.193-centos
+# centos, because onepass binary?
+FROM jenkins/jenkins:2.206-centos
 
 COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
 RUN /usr/local/bin/install-plugins.sh < /usr/share/jenkins/ref/plugins.txt
@@ -15,10 +15,15 @@ ENV BITBUCKET_HOST bitbucket.imp.ac.at
 # this seems broken in combination with --volume from commandline
 # VOLUME /var/jenkins_home/
 
-ADD https://cache.agilebits.com/dist/1P/op/pkg/v0.5.7/op_linux_amd64_v0.5.7.zip /tmp
+ARG ONEPASS_VERSION=v0.8.0
+ARG ONEPASS_SIGNKEY=3FEF9748469ADBE15DA7CA80AC2D62742012EA22
+ADD https://cache.agilebits.com/dist/1P/op/pkg/${ONEPASS_VERSION}/op_linux_amd64_${ONEPASS_VERSION}.zip /tmp
 
 USER root
-RUN unzip /tmp/op_linux_amd64_v0.5.7.zip op -d /usr/local/bin/
+RUN cd /tmp && unzip op_linux_amd64_${ONEPASS_VERSION}.zip && \
+  gpg --recv-keys $ONEPASS_SIGNKEY && \
+  gpg --verify op.sig op && \
+  cp op /usr/local/bin/
 
 USER jenkins
 # groovy init scripts, must be in JENKINS_HOME
