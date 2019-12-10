@@ -1,46 +1,43 @@
-artifactory:3.3.2
+artifactory:3.4.1
 matrix-project:1.14
-script-security:1.62
+script-security:1.68
 bitbucket:1.1.11
-github:1.29.4
+github:1.29.5
 active-directory:2.16
-saml:1.1.2
-ssh-slaves:1.30.1
+saml:1.1.4
 timestamper:1.10
-matrix-auth:2.4.2
-jira:3.0.9
-# need this for correct branch discovery traits in config as code setup
-#git:4.0.0-beta10
-git:3.12.0
-docker-workflow:1.19
-Office-365-Connector:4.11.0
+matrix-auth:2.5
+jira:3.0.11
+git:4.0.0
+docker-workflow:1.21
+Office-365-Connector:4.12.0
 build-monitor:1.12+build.201809061734
-configuration-as-code:1.29
+configuration-as-code:1.34
 job-dsl:1.76
-blueocean:1.18.1
+blueocean:1.21.0
 authorize-project:1.3.0
-embeddable-build-status:2.0.2
-ansible-tower:0.10.0
+embeddable-build-status:2.0.3
+ansible-tower:0.13.0
 ansicolor:0.6.2
 folder-properties:1.0
-lockable-resources:2.5
-role-strategy:2.13
-pipeline-utility-steps:2.3.0
+lockable-resources:2.7
+role-strategy:2.15
+pipeline-utility-steps:2.3.1
 # fine tuning of branch/tag build behavior
 basic-branch-build-strategies:1.3.2
 # for running groovy steps and system groovy in the seed job
 groovy:2.2
 # pipeline:2.6
 # workflow-job:2.33
-# script-security:1.62
 # allow project parameters to be a branch / tag / revision from given repo
 git-parameter:0.9.11
 ws-cleanup:0.37
 #
 # pinned to 1.15, not 1.17.1 because of https://issues.jenkins-ci.org/browse/JENKINS-57435 breaking seed job ssh key import
-#ssh-credentials:1.15
+ssh-credentials:1.18
 # as a consequence, use later version here: (not 1.30.1 at the time)
 #ssh-slaves:1.29.4
+ssh-slaves:1.31.0
 # mostly for arageno et al
 ssh-agent:1.17
 # advanced view filtering
