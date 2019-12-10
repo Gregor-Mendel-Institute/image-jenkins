@@ -122,7 +122,7 @@ jenkins:
         name: "Ansible roles"
         recurse: true
     - all:
-        name: "all"
+        name: "All"
     - list:
         columns:
           - "status"
