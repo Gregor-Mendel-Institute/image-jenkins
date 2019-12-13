@@ -35,9 +35,12 @@ jenkins:
     # see docs: https://github.com/jenkinsci/configuration-as-code-plugin/tree/master/demos/saml
     saml:
       binding: "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
+      usernameAttributeName: "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
       displayNameAttributeName: "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name"
       emailAttributeName: "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
       groupsAttributeName: "http://schemas.xmlsoap.org/claims/Group"
+      encryptionData:
+        forceSignRedirectBindingAuthnRequest: true
       idpMetadataConfiguration:
         # refresh period is in minutes
         period: 60

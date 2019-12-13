@@ -5,7 +5,7 @@ security:
     tokenGenerationOnCreationEnabled: false
     usageStatisticsEnabled: true
   globalJobDslSecurityConfiguration:
-    useScriptSecurity: true
+    useScriptSecurity: false
   # will require project authorization plugin
   queueItemAuthenticator:
     authenticators:
