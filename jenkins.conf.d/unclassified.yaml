@@ -70,4 +70,13 @@ unclassified:
     # hookUrl: "${JENKINS_GITHUB_WEBOOK_URL:-https://webhooks.vbc.ac.at/test-jenkins/github}"
     # FIXME hookUrl cannot be set here see https://github.com/jenkinsci/configuration-as-code-plugin/issues/672
     # see also https://github.com/jenkinsci/github-plugin/pull/210
+tool:
+  go:
+    installations:
+    - name: "golang-1.13.5"
+      properties:
+      - installSource:
+          installers:
+          - golangInstaller:
+              id: "1.13.5"
 ...
